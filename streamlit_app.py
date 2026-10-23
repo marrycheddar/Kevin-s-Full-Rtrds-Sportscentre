@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
+import random
 
 # ====================== CONFIG ======================
 LEAGUE_ID = "1380669652224454656"
@@ -9,64 +10,171 @@ BASE = "https://api.sleeper.app/v1"
 PASSWORD = "buffalo"
 
 PERSONALITIES = {
-    "Doug Flutie": "Winnie the Pooh. Famous for no-showing group events and being a career bronze-level fantasy player. Best friend is a homeless man named Kevin.",
-    "All you need is LOVE": "Conspiracy theorist, successful fantasy player, loves chirping everyone, and is a Packers fan. (That's you!)",
-    "Justin Credible": "Known as Donner. Huge calves. When intoxicated turns into Slack Jaw – a walking hazard.",
+    "Doug Flutie": "Winnie the Pooh. Famous for no-showing group events. Career bronze player. Best friend is a homeless man named Kevin.",
+    "All you need is LOVE": "Conspiracy theorist. Successful fantasy player. Loves chirping. Packers fan.",
+    "Justin Credible": "Known as Donner. Huge calves. Turns into Slack Jaw when intoxicated.",
     "Team Swedish Meatball": "JP. Career non-playoff manager. Loves Randy Couture and Sportchek.",
-    "Run cmc": "Sean, aka Colossus / Donkey Kong. Balding badly. Can't name 5 NFL quarterbacks. Degenerate gambler.",
-    "JUDKINSRICECORRECTIONAL": "Todd – last year's champion who still hasn't received his trophy. Big rival of One Time.",
-    '"nine"': "Timmers. Likes to see men's butts. Wears a tie and loosens it after a hard day's work. Vikings fan.",
-    "Jabberwocky69": "Trav. Loves high-end sports cars and Josh Allen. Looks like Littlefinger from Game of Thrones.",
-    "Pink Socks": "Mike. Acts like a grandpa. Loves the Habs. Reigning towel-whipping champion.",
-    "Raiders": "Jonesy. Barely talks to the rest of the league. Die-hard Raiders fan. Used to get pushed around in a shopping cart into sidewalks.",
-    "Hurts When I PPR": "Jason (Jay). Eagles fan. Has platinum status but has been terrible since joining. Loves dressing up in Tootoos and hotdog costumes.",
-    "One Time": "Aka The Rat / Master Splinter. Has had a lot of success but is terrible this year. 49ers fan. Weasel.",
+    "Run cmc": "Sean (Colossus / Donkey Kong). Balding badly. Can't name 5 NFL QBs. Degenerate gambler.",
+    "JUDKINSRICECORRECTIONAL": "Todd – last year's champion who still hasn't received his trophy. Rival of One Time.",
+    '"nine"': "Timmers. Likes men's butts. Wears a tie and loosens it after work. Vikings fan.",
+    "Jabberwocky69": "Trav. Loves high-end sports cars and Josh Allen. Looks like Littlefinger.",
+    "Pink Socks": "Mike. Acts like a grandpa. Loves the Habs. Towel-whipping champion.",
+    "Raiders": "Jonesy. Barely talks. Die-hard Raiders fan. Used to get launched into sidewalks in a shopping cart.",
+    "Hurts When I PPR": "Jason (Jay). Eagles fan. Platinum status but has been terrible. Loves Tootoo and hotdog costumes.",
+    "One Time": "The Rat / Master Splinter. Lots of past success, terrible this year. 49ers fan. Weasel.",
 }
+
+# Random ticker facts
+TICKER_FACTS = [
+    "Doug Flutie is still waiting for Kevin to show up to a league event.",
+    "All you need is LOVE believes the league is controlled by lizard people.",
+    "Justin Credible's calves have their own Instagram.",
+    "Team Swedish Meatball has never made the playoffs. Ever.",
+    "Run cmc still thinks the NFL has 12 teams.",
+    "JUDKINSRICECORRECTIONAL is still waiting for last year's trophy.",
+    "Timmers (nine) rates every league meeting by butt quality.",
+    "Jabberwocky69's car collection is worth more than the league prize pool.",
+    "Pink Socks once towel-whipped three managers in one night.",
+    "Jonesy (Raiders) has spoken 11 words in league chat this season.",
+    "Hurts When I PPR showed up to the draft in a hotdog costume.",
+    "One Time is currently in last place after years of dominance.",
+    "The league still has no official commissioner. Chaos reigns.",
+    "Someone once tried to trade a player for a case of beer. It almost worked.",
+]
 
 # ====================== PAGE SETUP ======================
 st.set_page_config(
     page_title="Full R*tards Network",
     page_icon="🏈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS – sports broadcast look
+# Modern clean CSS
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
     .stApp {
-        background: linear-gradient(180deg, #0a0e17 0%, #111827 100%);
+        background: #0b0f19;
         color: #e5e7eb;
     }
-    h1, h2, h3 {
-        color: #fbbf24 !important;
+    
+    /* Hide default Streamlit branding */
+    #MainMenu, footer, header {visibility: hidden;}
+    
+    .block-container {
+        padding-top: 1.5rem;
+        padding-bottom: 3rem;
+        max-width: 1200px;
+    }
+    
+    h1 {
+        font-size: 2.1rem !important;
         font-weight: 800 !important;
-        letter-spacing: -0.5px;
+        letter-spacing: -0.03em;
+        color: #f8fafc !important;
+        margin-bottom: 0.25rem !important;
     }
-    .stMetric {
-        background: #1f2937;
-        border: 1px solid #374151;
-        border-radius: 12px;
-        padding: 16px;
+    
+    h2, h3 {
+        font-weight: 700 !important;
+        color: #f1f5f9 !important;
+        letter-spacing: -0.02em;
     }
-    .broadcast-card {
-        background: #1f2937;
-        border: 1px solid #374151;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 16px;
-    }
-    .ticker {
-        background: #b91c1c;
-        color: white;
-        padding: 8px 16px;
-        font-weight: 700;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-    div[data-testid="stSidebar"] {
+    
+    /* Ticker */
+    .ticker-wrap {
         background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 1.75rem;
+        height: 42px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .ticker {
+        display: flex;
+        white-space: nowrap;
+        animation: ticker 45s linear infinite;
+    }
+    
+    .ticker span {
+        padding: 0 2.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+    
+    .ticker span::before {
+        content: "•";
+        color: #f59e0b;
+        margin-right: 1.25rem;
+    }
+    
+    @keyframes ticker {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    
+    /* Cards */
+    .card {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        height: 100%;
+    }
+    
+    .metric-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #f8fafc;
+        line-height: 1.2;
+    }
+    
+    .metric-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    
+    /* Standings table polish */
+    .stDataFrame {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: #f59e0b !important;
+        color: #0b0f19 !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.6rem 1.4rem !important;
+    }
+    
+    .stButton > button:hover {
+        background: #fbbf24 !important;
+    }
+    
+    /* Video box */
+    .video-box {
+        background: #111827;
+        border: 1px dashed #334155;
+        border-radius: 14px;
+        padding: 2rem;
+        text-align: center;
+        color: #64748b;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -76,15 +184,16 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("🏈 Full R*tards Network")
-    st.write("Private league broadcast. Enter the password to continue.")
-    pwd = st.text_input("Password", type="password")
-    if st.button("Enter the Network"):
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.title("Full R*tards Network")
+    st.write("Private league broadcast")
+    pwd = st.text_input("Password", type="password", label_visibility="collapsed", placeholder="Enter password")
+    if st.button("Enter"):
         if pwd == PASSWORD:
             st.session_state.authenticated = True
             st.rerun()
         else:
-            st.error("Wrong password. Try again.")
+            st.error("Incorrect password")
     st.stop()
 
 # ====================== DATA ======================
@@ -124,13 +233,12 @@ def load_data():
     standings = sorted(standings, key=lambda x: (-x["W"], -x["PF"]))
     for i, row in enumerate(standings, 1):
         row["Rank"] = i
-    return user_map, standings
+    return standings
 
 week, season = get_current_week()
-user_map, standings = load_data()
+standings = load_data()
 matchups_raw = get_json(f"{BASE}/league/{LEAGUE_ID}/matchups/{week}")
 
-# Group matchups
 matchup_groups = {}
 for m in matchups_raw:
     mid = m.get("matchup_id")
@@ -138,41 +246,73 @@ for m in matchups_raw:
         matchup_groups[mid] = []
     matchup_groups[mid].append(m)
 
-# ====================== HEADER ======================
+# ====================== TICKER ======================
+random.shuffle(TICKER_FACTS)
+ticker_content = "".join([f"<span>{fact}</span>" for fact in TICKER_FACTS * 2])
+
 st.markdown(f"""
-<div class="ticker">
-    FULL R*TARDS NETWORK • WEEK {week} • {season} SEASON • LIVE FROM THE LEAGUE OF CHAOS
+<div class="ticker-wrap">
+    <div class="ticker">
+        {ticker_content}
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
+# ====================== HEADER ======================
 st.title("Full R*tards Network")
-st.caption("The only place where Winnie the Pooh, Master Splinter, and Slack Jaw share a league.")
+st.caption(f"Week {week}  ·  {season} Season  ·  Live from the league of chaos")
 
-# ====================== STANDINGS + POWER RANKINGS ======================
-col1, col2 = st.columns([1.4, 1])
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ====================== STANDINGS + POWER ======================
+col1, col2 = st.columns([1.6, 1], gap="large")
 
 with col1:
-    st.header("📊 Official Standings")
+    st.subheader("Standings")
     df = pd.DataFrame(standings)[["Rank", "Team", "W", "L", "PF", "PA"]]
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Rank": st.column_config.NumberColumn(width="small"),
+            "Team": st.column_config.TextColumn(width="medium"),
+            "W": st.column_config.NumberColumn(width="small"),
+            "L": st.column_config.NumberColumn(width="small"),
+            "PF": st.column_config.NumberColumn(format="%.1f"),
+            "PA": st.column_config.NumberColumn(format="%.1f"),
+        }
+    )
 
 with col2:
-    st.header("🔥 Power Rankings")
-    # Simple power ranking: 60% record + 40% points
+    st.subheader("Power Rankings")
     power = []
     for s in standings:
-        score = (s["W"] * 3) + (s["PF"] / 100)
+        score = (s["W"] * 3.2) + (s["PF"] / 95)
         power.append((s["Team"], score, s["Rank"]))
     power = sorted(power, key=lambda x: -x[1])
     
-    for i, (team, score, official_rank) in enumerate(power, 1):
-        arrow = "↑" if i < official_rank else ("↓" if i > official_rank else "–")
-        st.markdown(f"**{i}. {team}** {arrow}")
+    for i, (team, score, official) in enumerate(power, 1):
+        delta = official - i
+        if delta > 0:
+            arrow = f"<span style='color:#22c55e'>↑{delta}</span>"
+        elif delta < 0:
+            arrow = f"<span style='color:#ef4444'>↓{abs(delta)}</span>"
+        else:
+            arrow = "<span style='color:#64748b'>—</span>"
+        
+        st.markdown(f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0; border-bottom:1px solid #1f2937;">
+            <div style="font-weight:600;">{i}. {team}</div>
+            <div>{arrow}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ====================== MATCHUPS ======================
-st.header(f"⚔️ Week {week} Scoreboard")
+st.markdown("<br>", unsafe_allow_html=True)
+st.subheader(f"Week {week} Scoreboard")
 
-cols = st.columns(3)
+cols = st.columns(3, gap="medium")
 for idx, (mid, teams) in enumerate(sorted(matchup_groups.items())):
     if len(teams) != 2:
         continue
@@ -184,66 +324,58 @@ for idx, (mid, teams) in enumerate(sorted(matchup_groups.items())):
     
     with cols[idx % 3]:
         st.markdown(f"""
-        <div class="broadcast-card">
-            <h4 style="margin:0;color:#fbbf24;">{name1}</h4>
-            <h2 style="margin:4px 0;">{pts1:.1f}</h2>
-            <p style="margin:0;opacity:0.7;">vs</p>
-            <h4 style="margin:0;color:#fbbf24;">{name2}</h4>
-            <h2 style="margin:4px 0;">{pts2:.1f}</h2>
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:0.75rem;">
+                <div style="font-weight:600; font-size:0.95rem;">{name1}</div>
+                <div class="metric-value" style="font-size:1.4rem;">{pts1:.1f}</div>
+            </div>
+            <div style="height:1px; background:#1f2937; margin:0.5rem 0;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                <div style="font-weight:600; font-size:0.95rem;">{name2}</div>
+                <div class="metric-value" style="font-size:1.4rem;">{pts2:.1f}</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-# ====================== CHIRP OF THE WEEK ======================
-st.header("🗣️ Chirp of the Week")
-# Simple logic: lowest points or worst record gets roasted
+# ====================== CHIRP ======================
+st.markdown("<br>", unsafe_allow_html=True)
+st.subheader("Chirp of the Week")
 worst = min(standings, key=lambda x: x["PF"])
-chirp = f"This week’s golden boot goes to **{worst['Team']}**. {PERSONALITIES.get(worst['Team'], '')} The league is watching."
-st.info(chirp)
+st.info(f"**{worst['Team']}** currently owns the golden boot. {PERSONALITIES.get(worst['Team'], '')}")
 
-# ====================== SPORTCASTER / VIDEO SECTION ======================
-st.header("🎙️ The Ron Burgundy Broadcast")
+# ====================== BROADCAST ======================
+st.markdown("<br>", unsafe_allow_html=True)
+st.subheader("The Broadcast")
 
-st.markdown("""
-**Weekly Video Broadcast**  
-Once scores are final, generate a Ron Burgundy-style video using the script below and paste the video link here.
-""")
+st.markdown("Paste this week’s Ron Burgundy video link below (YouTube unlisted or direct link).")
 
-# Placeholder for the weekly video
-video_url = st.text_input("Paste this week’s video URL (YouTube, Vimeo, or direct .mp4 link)", 
-                          placeholder="https://...")
+video_url = st.text_input("Video URL", placeholder="https://youtube.com/watch?v=...", label_visibility="collapsed")
 
 if video_url:
     st.video(video_url)
 else:
-    st.warning("No video uploaded yet this week. Generate one using the script below and paste the link.")
+    st.markdown("""
+    <div class="video-box">
+        No video this week yet.<br>
+        Generate one with the script below and paste the link.
+    </div>
+    """, unsafe_allow_html=True)
 
-# Detailed humorous script
 def build_script():
     lines = []
-    lines.append(f"Hello, I’m Ron Burgundy, and this is the Full R*tards Network. You’re watching the Week {week} recap.")
-    lines.append("Stay classy, San Diego… I mean, Ottawa.")
-    
+    lines.append(f"Hello, I’m Ron Burgundy. This is the Full R*tards Network. Week {week} recap.")
     leader = standings[0]
-    lines.append(f"Sitting atop the mountain is {leader['Team']} at {leader['W']}-{leader['L']}. {PERSONALITIES.get(leader['Team'], '')}")
-    
-    # Highlight a few more
+    lines.append(f"At the top sits {leader['Team']} at {leader['W']}-{leader['L']}. {PERSONALITIES.get(leader['Team'], '')}")
     for s in standings[1:4]:
-        lines.append(f"{s['Team']} is right there at {s['W']}-{s['L']}. {PERSONALITIES.get(s['Team'], '')}")
-    
+        lines.append(f"{s['Team']} sits at {s['W']}-{s['L']}. {PERSONALITIES.get(s['Team'], '')}")
     bottom = standings[-1]
-    lines.append(f"And down in the basement we find {bottom['Team']}. {PERSONALITIES.get(bottom['Team'], '')} Brutal.")
-    
-    lines.append("That’s the state of the league this week. May your waivers hit and your friends show up. Good night, and stay classy.")
+    lines.append(f"And at the bottom we find {bottom['Team']}. {PERSONALITIES.get(bottom['Team'], '')}")
+    lines.append("Stay classy, Full R*tards. This has been Ron Burgundy. Good night.")
     return " ".join(lines)
 
 script = build_script()
 
-with st.expander("📜 This Week’s Full Script (copy this for your video)"):
+with st.expander("This week’s script (copy for your video)"):
     st.write(script)
-    st.code(script, language=None)
 
-st.caption("Tip: Copy the script → go to a free AI talking-head tool (HeyGen free plan works) → generate a Ron Burgundy style video → upload to YouTube/Vimeo (unlisted) → paste the link above.")
-
-# ====================== FOOTER ======================
-st.markdown("---")
-st.caption(f"Full R*tards Network • Data from Sleeper • Updated {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+st.caption(f"Updated {datetime.now().strftime('%b %d, %Y %H:%M')}  ·  Data via Sleeper")
